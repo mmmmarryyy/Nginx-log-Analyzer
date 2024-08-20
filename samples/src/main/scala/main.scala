@@ -1,6 +1,4 @@
-package scala.backend.academy
-
 @main
-def main(): Unit = {
+def main(): Unit =
   println("Hello world!")
-}
+end main
