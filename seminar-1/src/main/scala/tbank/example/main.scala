@@ -2,7 +2,6 @@ package tbank.example
 
 import tbank.ab.{A, B}
 
-
 @main
 def main(): Unit = {
   val a = new A()
@@ -13,10 +12,6 @@ def main(): Unit = {
 //  a.protectedValue
 //  a.packageSpecificValue
   a.publicValue
-  
+
   a.doSomething(b)
 }
-
-
-
-

@@ -8,9 +8,9 @@ class A {
   protected val protectedValue: Boolean = true
 
   private[ab] val packageSpecificValue: Boolean = true
-  
+
   val publicValue: Boolean = true
-   
+
   {
     objectPrivateValue
     privateValue
@@ -18,7 +18,7 @@ class A {
     packageSpecificValue
     publicValue
   }
-  
+
   def doSomething(other: A): Unit = {
     // other.objectPrivateValue так нельзя
     other.privateValue
@@ -42,11 +42,7 @@ def main(): Unit = {
 //  a.protectedValue
   a.packageSpecificValue
   a.publicValue
-  
+
   a.doSomething(b)
-  
+
 }
-
-
-
-
