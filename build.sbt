@@ -6,3 +6,5 @@ lazy val samples = project
     scalaVersion := Versions.scala3,
     libraryDependencies ++= Seq(scalaTest, scalastic)
   )
+
+lazy val `seminar-1` = project.settings(scalaVersion := Versions.scala3)
