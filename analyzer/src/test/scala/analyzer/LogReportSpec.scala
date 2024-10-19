@@ -9,7 +9,9 @@ import java.io.File
 
 class LogReportSpec extends AnyFunSuite {
 
-  test("LogReport.createReport should create a correct markdown report for a given LogReport") {
+  test(
+    "LogReport.createReport should create a correct markdown report for a given LogReport"
+  ) {
     val logReport = LogReport(
       "src/test/resources/test_logs/*.txt",
       Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
@@ -28,7 +30,9 @@ class LogReportSpec extends AnyFunSuite {
     assert(reportFile.exists)
   }
 
-  test("LogReport.createReport should create a correct adoc report for a given LogReport") {
+  test(
+    "LogReport.createReport should create a correct adoc report for a given LogReport"
+  ) {
     val logReport = LogReport(
       "src/test/resources/test_logs/*.txt",
       Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
@@ -47,7 +51,9 @@ class LogReportSpec extends AnyFunSuite {
     assert(reportFile.exists)
   }
 
-  test("LogReport.getStatusName should return the correct status name for a given code") {
+  test(
+    "LogReport.getStatusName should return the correct status name for a given code"
+  ) {
     assert(LogReport.getStatusName(200) === "OK")
     assert(LogReport.getStatusName(304) === "NotModified")
     assert(LogReport.getStatusName(404) === "NotFound")

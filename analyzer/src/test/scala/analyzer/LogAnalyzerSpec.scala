@@ -45,7 +45,7 @@ class LogAnalyzerSpec extends AnyFunSuite {
         1024,
         "https://www.example.com/",
         "Mozilla/5.0"
-      ),
+      )
     )
     val result = LogAnalyzer.analyzeLogRecords(
       logRecords,
@@ -108,7 +108,8 @@ class LogAnalyzerSpec extends AnyFunSuite {
         200,
         512,
         "https://www.example.com/",
-        "Firefox/70"   )
+        "Firefox/70"
+      )
     )
     val result = LogAnalyzer.analyzeLogRecords(
       logRecords,
@@ -116,17 +117,19 @@ class LogAnalyzerSpec extends AnyFunSuite {
       None,
       None
     )
-    assert(result === LogReport(
-      "somePAth",
-      None,
-      None,
-      Some(3L),
-      Some(Map("127.0.0.1" -> 2L, "192.168.1.1" -> 1L)),
-      Some(Map("/index.html" -> 1L, "/api/users" -> 1L, "/about.html" -> 1L)),
-      Some(Map(200 -> 2L, 201 -> 1L)),
-      Some(Map("GET" -> 2L, "POST" -> 1L)),
-      Some(1194.6666666666667),
-      Some(2048.0)
-    ))
+    assert(
+      result === LogReport(
+        "somePAth",
+        None,
+        None,
+        Some(3L),
+        Some(Map("127.0.0.1" -> 2L, "192.168.1.1" -> 1L)),
+        Some(Map("/index.html" -> 1L, "/api/users" -> 1L, "/about.html" -> 1L)),
+        Some(Map(200 -> 2L, 201 -> 1L)),
+        Some(Map("GET" -> 2L, "POST" -> 1L)),
+        Some(1194.6666666666667),
+        Some(2048.0)
+      )
+    )
   }
 }

@@ -6,35 +6,72 @@ import org.scalatest.funsuite.AnyFunSuite
 class InputUtilsSpec extends AnyFunSuite {
 
   test("InputUtils.parseArgs should parse valid arguments correctly") {
-    val args = Array("--path", "src/test/resources/test_logs/*.txt", "--from", "2024-08-31", "--to", "2024-09-01", "--format", "adoc")
+    val args = Array(
+      "--path",
+      "src/test/resources/test_logs/*.txt",
+      "--from",
+      "2024-08-31",
+      "--to",
+      "2024-09-01",
+      "--format",
+      "adoc"
+    )
     val result = InputUtils.parseArgs(args)
-    assert(result === Some(
-      ("src/test/resources/test_logs/*.txt", Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")), Some(ZonedDateTime.parse("2024-09-01T00:00:00Z")), "adoc")
-    ))
+    assert(
+      result === Some(
+        (
+          "src/test/resources/test_logs/*.txt",
+          Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
+          Some(ZonedDateTime.parse("2024-09-01T00:00:00Z")),
+          "adoc"
+        )
+      )
+    )
   }
 
-  test("InputUtils.parseArgs should parse arguments without to date correctly") {
-    val args = Array("--path", "src/test/resources/test_logs/*.txt", "--from", "2024-08-31")
+  test(
+    "InputUtils.parseArgs should parse arguments without to date correctly"
+  ) {
+    val args = Array(
+      "--path",
+      "src/test/resources/test_logs/*.txt",
+      "--from",
+      "2024-08-31"
+    )
     val result = InputUtils.parseArgs(args)
-    assert(result === Some(
-      ("src/test/resources/test_logs/*.txt", Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")), None, "markdown")
-    ))
+    assert(
+      result === Some(
+        (
+          "src/test/resources/test_logs/*.txt",
+          Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
+          None,
+          "markdown"
+        )
+      )
+    )
   }
 
-  test("InputUtils.parseArgs should parse arguments without from and to dates correctly") {
+  test(
+    "InputUtils.parseArgs should parse arguments without from and to dates correctly"
+  ) {
     val args = Array("--path", "src/test/resources/test_logs/*.txt")
     val result = InputUtils.parseArgs(args)
-    assert(result === Some(
-      ("src/test/resources/test_logs/*.txt", None, None, "markdown")
-    ))
+    assert(
+      result === Some(
+        ("src/test/resources/test_logs/*.txt", None, None, "markdown")
+      )
+    )
   }
 
   test("InputUtils.parseArgs should parse arguments with a format option") {
-    val args = Array("--path", "src/test/resources/test_logs/*.txt", "--format", "adoc")
+    val args =
+      Array("--path", "src/test/resources/test_logs/*.txt", "--format", "adoc")
     val result = InputUtils.parseArgs(args)
-    assert(result === Some(
-      ("src/test/resources/test_logs/*.txt", None, None, "adoc")
-    ))
+    assert(
+      result === Some(
+        ("src/test/resources/test_logs/*.txt", None, None, "adoc")
+      )
+    )
   }
 
   test("InputUtils.parseArgs should return None for invalid arguments") {

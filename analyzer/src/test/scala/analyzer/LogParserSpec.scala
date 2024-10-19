@@ -97,27 +97,47 @@ class LogParserSpec extends AnyFunSuite {
   }
 
   test("LogParser.getLogRecords get correctly from URI") {
-    val result = LogParser.getLogRecords("https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs", None, None)
+    val result = LogParser.getLogRecords(
+      "https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs",
+      None,
+      None
+    )
     assert(result.size == 51462)
   }
 
   test("LogParser.getLogRecords get correctly from local file") {
-    val result = LogParser.getLogRecords("./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt", None, None)
+    val result = LogParser.getLogRecords(
+      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
+      None,
+      None
+    )
     assert(result.size == 4)
   }
 
   test("LogParser.getLogRecords works correctly with from option") {
-    val result = LogParser.getLogRecords("./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt", Some(InputUtils.parseDate("2024-09-01")), None)
+    val result = LogParser.getLogRecords(
+      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
+      Some(InputUtils.parseDate("2024-09-01")),
+      None
+    )
     assert(result.size == 3)
   }
 
   test("LogParser.getLogRecords works correctly with to option") {
-    val result = LogParser.getLogRecords("./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt", None, Some(InputUtils.parseDate("2024-11-03")))
+    val result = LogParser.getLogRecords(
+      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
+      None,
+      Some(InputUtils.parseDate("2024-11-03"))
+    )
     assert(result.size == 3)
   }
 
   test("LogParser.getLogRecords works correctly with from and to options") {
-    val result = LogParser.getLogRecords("./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt", Some(InputUtils.parseDate("2024-09-01")), Some(InputUtils.parseDate("2024-11-03")))
+    val result = LogParser.getLogRecords(
+      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
+      Some(InputUtils.parseDate("2024-09-01")),
+      Some(InputUtils.parseDate("2024-11-03"))
+    )
     assert(result.size == 2)
   }
 }
