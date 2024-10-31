@@ -33,8 +33,8 @@ class FileUtilsSpec extends AnyFunSuite {
   test(
     "generateReportFileName should generate a unique filename for each report"
   ) {
-    val filename1 = FileUtils.generateReportFileName("md")
-    val filename2 = FileUtils.generateReportFileName("adoc")
+    val filename1 = FileUtils.generateReportFileName(Markdown)
+    val filename2 = FileUtils.generateReportFileName(Adoc)
     assert(filename1 !== filename2)
   }
 }

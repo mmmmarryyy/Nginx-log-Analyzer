@@ -100,6 +100,8 @@ class LogParserSpec extends AnyFunSuite {
     val result = LogParser.getLogRecords(
       "https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs",
       None,
+      None,
+      None,
       None
     )
     assert(result.size == 51462)
@@ -108,6 +110,8 @@ class LogParserSpec extends AnyFunSuite {
   test("LogParser.getLogRecords get correctly from local file") {
     val result = LogParser.getLogRecords(
       "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
+      None,
+      None,
       None,
       None
     )
@@ -118,6 +122,8 @@ class LogParserSpec extends AnyFunSuite {
     val result = LogParser.getLogRecords(
       "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
       Some(InputUtils.parseDate("2024-09-01")),
+      None,
+      None,
       None
     )
     assert(result.size == 3)
@@ -127,7 +133,9 @@ class LogParserSpec extends AnyFunSuite {
     val result = LogParser.getLogRecords(
       "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
       None,
-      Some(InputUtils.parseDate("2024-11-03"))
+      Some(InputUtils.parseDate("2024-11-03")),
+      None,
+      None
     )
     assert(result.size == 3)
   }
@@ -136,8 +144,25 @@ class LogParserSpec extends AnyFunSuite {
     val result = LogParser.getLogRecords(
       "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
       Some(InputUtils.parseDate("2024-09-01")),
-      Some(InputUtils.parseDate("2024-11-03"))
+      Some(InputUtils.parseDate("2024-11-03")),
+      None,
+      None
     )
     assert(result.size == 2)
+  }
+
+  test("getLogRecordsFromLocal should filter records by filter field") {
+    val filterField = Some(Resource)
+    val filterValue = Some("/index.html")
+
+    val records = LogParser.getLogRecords(
+      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
+      None,
+      None,
+      filterField,
+      filterValue
+    )
+
+    assert(records.size == 2)
   }
 }

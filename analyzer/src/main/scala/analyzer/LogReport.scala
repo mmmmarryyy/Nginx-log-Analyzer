@@ -40,8 +40,8 @@ object LogReport {
   private val addressesStr = "Addresses Statistics"
   private val addressStr = "Remote Address"
 
-  def createReport(logReport: LogReport, format: String): Unit = {
-    if (format == "adoc") {
+  def createReport(logReport: LogReport, format: ReportFormat): Unit = {
+    if (format == Adoc) {
       createAdocReport(logReport)
     } else {
       createMarkdownReport(logReport)
@@ -49,7 +49,7 @@ object LogReport {
   }
 
   private def createMarkdownReport(logReport: LogReport): Unit = {
-    val fileWriter = new FileWriter(new File(generateReportFileName("md")))
+    val fileWriter = new FileWriter(new File(generateReportFileName(Markdown)))
     fileWriter.write(
       s"#### $generalInformationStr\n"
     )
@@ -127,7 +127,7 @@ object LogReport {
   }
 
   private def createAdocReport(logReport: LogReport): Unit = {
-    val fileWriter = new FileWriter(new File(generateReportFileName("adoc")))
+    val fileWriter = new FileWriter(new File(generateReportFileName(Adoc)))
     fileWriter.write(s"== $generalInformationStr ==\n[cols=\"1,1\"]\n|===\n")
     fileWriter.write(s"|$metricsStr|$valueStr\n\n")
     fileWriter.write(

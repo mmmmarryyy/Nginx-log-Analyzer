@@ -53,19 +53,23 @@ object LogParser {
   def getLogRecords(
       path: String,
       from: Option[ZonedDateTime],
-      to: Option[ZonedDateTime]
+      to: Option[ZonedDateTime],
+      filterField: Option[FilterField],
+      filterValue: Option[String]
   ): Iterator[LogRecord] = {
     if (path.startsWith("http")) {
-      getLogRecordsFromUrl(path, from, to)
+      getLogRecordsFromUrl(path, from, to, filterField, filterValue)
     } else {
-      getLogRecordsFromLocal(path, from, to)
+      getLogRecordsFromLocal(path, from, to, filterField, filterValue)
     }
   }
 
   private def getLogRecordsFromLocal(
       path: String,
       from: Option[ZonedDateTime],
-      to: Option[ZonedDateTime]
+      to: Option[ZonedDateTime],
+      filterField: Option[FilterField],
+      filterValue: Option[String]
   ) = {
     getMatchedFile(path).flatMap { file =>
       Source
@@ -75,7 +79,7 @@ object LogParser {
         .filter(line => {
           from.forall(_.isBefore(line.timeLocal)) && to.forall(
             _.isAfter(line.timeLocal)
-          )
+          ) && applyFilter(line, filterField, filterValue)
         })
     }.iterator
   }
@@ -83,7 +87,9 @@ object LogParser {
   private def getLogRecordsFromUrl(
       path: String,
       from: Option[ZonedDateTime],
-      to: Option[ZonedDateTime]
+      to: Option[ZonedDateTime],
+      filterField: Option[FilterField],
+      filterValue: Option[String]
   ): Iterator[LogRecord] = {
     Source
       .fromURL(new URL(path))
@@ -92,7 +98,7 @@ object LogParser {
       .filter(line => {
         from.forall(_.isBefore(line.timeLocal)) && to.forall(
           _.isAfter(line.timeLocal)
-        )
+        ) && applyFilter(line, filterField, filterValue)
       })
       .iterator
   }
@@ -126,6 +132,27 @@ object LogParser {
           s"Invalid date-time format: $dateStr",
           e
         )
+    }
+  }
+
+  private def applyFilter(
+      record: LogRecord,
+      filterField: Option[FilterField],
+      filterValue: Option[String]
+  ): Boolean = {
+    (filterField, filterValue) match {
+      case (Some(field), Some(value)) =>
+        field match {
+          case RemoteAddress => record.remoteAddress == value
+          case RemoteUser    => record.remoteUser == value
+          case HttpMethod    => record.httpMethod == value
+          case Resource      => record.resource == value
+          case Status        => record.status.toString == value
+          case BodyBytesSent => record.bodyBytesSent.toString == value
+          case HttpReferer   => record.httpReferer == value
+          case HttpUserAgent => record.httpUserAgent == value
+        }
+      case _ => true
     }
   }
 }

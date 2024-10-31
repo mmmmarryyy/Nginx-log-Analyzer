@@ -25,8 +25,8 @@ class LogReportSpec extends AnyFunSuite {
       Some(2048.0)
     )
 
-    val reportFile = new File(generateReportFileName("md"))
-    LogReport.createReport(logReport, "markdown")
+    val reportFile = new File(generateReportFileName(Markdown))
+    LogReport.createReport(logReport, Markdown)
     assert(reportFile.exists)
   }
 
@@ -46,8 +46,8 @@ class LogReportSpec extends AnyFunSuite {
       Some(2048.0)
     )
 
-    val reportFile = new File(generateReportFileName("adoc"))
-    LogReport.createReport(logReport, "adoc")
+    val reportFile = new File(generateReportFileName(Adoc))
+    LogReport.createReport(logReport, Adoc)
     assert(reportFile.exists)
   }
 

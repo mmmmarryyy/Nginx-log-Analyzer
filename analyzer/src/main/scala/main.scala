@@ -7,10 +7,19 @@ import analyzer.LogReport.createReport
 def main(args: String*): Unit = {
   parseArgs(args) match
     case Some(parsedArgs) =>
-      val (path, from, to, format) = parsedArgs
-
-      val logRecords = getLogRecords(path, from, to)
-      val logReport = analyzeLogRecords(logRecords, path, from, to)
-      createReport(logReport, format)
+      val logRecords = getLogRecords(
+        parsedArgs.path,
+        parsedArgs.from,
+        parsedArgs.to,
+        parsedArgs.filterField,
+        parsedArgs.filterValue
+      )
+      val logReport = analyzeLogRecords(
+        logRecords,
+        parsedArgs.path,
+        parsedArgs.from,
+        parsedArgs.to
+      )
+      createReport(logReport, parsedArgs.format)
     case None => println("Wrong args")
 }

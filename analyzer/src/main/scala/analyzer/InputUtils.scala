@@ -1,3 +1,5 @@
+// InputUtils.scala
+
 package analyzer
 
 import java.time.{LocalDate, ZonedDateTime}
@@ -5,17 +7,10 @@ import java.time.format.DateTimeFormatter
 import java.time.ZoneOffset
 
 object InputUtils {
-  private case class Config(
-      path: String = "",
-      from: Option[ZonedDateTime] = None,
-      to: Option[ZonedDateTime] = None,
-      format: String = "markdown"
-  )
-
   def parseArgs(
       args: Seq[String]
-  ): Option[(String, Option[ZonedDateTime], Option[ZonedDateTime], String)] = {
-    val parser = new scopt.OptionParser[Config]("analyzer") {
+  ): Option[AnalyzerArgs] = {
+    val parser = new scopt.OptionParser[AnalyzerArgs]("analyzer") {
       opt[String]("path")
         .required()
         .text("Path to log files (local path or URL)")
@@ -29,12 +24,29 @@ object InputUtils {
       opt[String]("format")
         .text("Output format (markdown or adoc). Default: markdown")
         .optional()
-        .action((x, c) => c.copy(format = x))
+        .action((x, c) => c.copy(format = parseFormatString(x)))
+      opt[String]("filter-field")
+        .text("Field to filter by (e.g., 'agent', 'method')")
+        .optional()
+        .action((x, c) => c.copy(filterField = parseFilterFieldString(x)))
+      opt[String]("filter-value")
+        .text("Value to filter by (e.g., 'Mozilla*', 'GET')")
+        .optional()
+        .action((x, c) => c.copy(filterValue = Some(x)))
     }
 
-    parser.parse(args, Config()) match {
+    parser.parse(args, AnalyzerArgs()) match {
       case Some(config) =>
-        Some(config.path, config.from, config.to, config.format)
+        Some(
+          AnalyzerArgs(
+            config.path,
+            config.from,
+            config.to,
+            config.format,
+            config.filterField,
+            config.filterValue
+          )
+        )
       case _ => None
     }
   }

@@ -18,14 +18,15 @@ object FileUtils {
     )
   }
 
-  def generateReportFileName(format: String): String = {
+  def generateReportFileName(format: ReportFormat): String = {
     val directory = new File(String.valueOf("reports"))
     if (!directory.exists) {
       directory.mkdir
     }
 
+    val fileType = toFileType(format)
     val numberOfReports = recursiveListFiles(new File("./reports")).length
-    if (numberOfReports == 0) "reports/" + s"report.$format"
-    else s"reports/report_${numberOfReports + 1}.$format"
+    if (numberOfReports == 0) "reports/" + s"report.$fileType"
+    else s"reports/report_${numberOfReports + 1}.$fileType"
   }
 }

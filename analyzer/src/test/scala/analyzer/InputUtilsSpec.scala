@@ -19,11 +19,13 @@ class InputUtilsSpec extends AnyFunSuite {
     val result = InputUtils.parseArgs(args)
     assert(
       result === Some(
-        (
+        AnalyzerArgs(
           "src/test/resources/test_logs/*.txt",
           Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
           Some(ZonedDateTime.parse("2024-09-01T00:00:00Z")),
-          "adoc"
+          Adoc,
+          None,
+          None
         )
       )
     )
@@ -41,11 +43,13 @@ class InputUtilsSpec extends AnyFunSuite {
     val result = InputUtils.parseArgs(args)
     assert(
       result === Some(
-        (
+        AnalyzerArgs(
           "src/test/resources/test_logs/*.txt",
           Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
           None,
-          "markdown"
+          Markdown,
+          None,
+          None
         )
       )
     )
@@ -58,7 +62,14 @@ class InputUtilsSpec extends AnyFunSuite {
     val result = InputUtils.parseArgs(args)
     assert(
       result === Some(
-        ("src/test/resources/test_logs/*.txt", None, None, "markdown")
+        AnalyzerArgs(
+          "src/test/resources/test_logs/*.txt",
+          None,
+          None,
+          Markdown,
+          None,
+          None
+        )
       )
     )
   }
@@ -69,7 +80,14 @@ class InputUtilsSpec extends AnyFunSuite {
     val result = InputUtils.parseArgs(args)
     assert(
       result === Some(
-        ("src/test/resources/test_logs/*.txt", None, None, "adoc")
+        AnalyzerArgs(
+          "src/test/resources/test_logs/*.txt",
+          None,
+          None,
+          Adoc,
+          None,
+          None
+        )
       )
     )
   }
@@ -90,5 +108,31 @@ class InputUtilsSpec extends AnyFunSuite {
     val dateStr = "2011-12-03T10:15:30+01:00"
     val result = InputUtils.parseDate(dateStr)
     assert(result === ZonedDateTime.parse(dateStr))
+  }
+
+  test(
+    "InputUtils.parseArgs should parse arguments with filter field and value"
+  ) {
+    val args = Array(
+      "--path",
+      "src/test/resources/test_logs/*.txt",
+      "--filter-field",
+      "agent",
+      "--filter-value",
+      "Mozilla"
+    )
+    val result = InputUtils.parseArgs(args)
+    assert(
+      result === Some(
+        AnalyzerArgs(
+          "src/test/resources/test_logs/*.txt",
+          None,
+          None,
+          Markdown,
+          Some(HttpUserAgent),
+          Some("Mozilla")
+        )
+      )
+    )
   }
 }
