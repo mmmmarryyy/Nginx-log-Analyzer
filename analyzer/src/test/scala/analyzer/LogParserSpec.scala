@@ -1,26 +1,33 @@
 package analyzer
 
-import java.time.ZonedDateTime
-import org.scalatest.funsuite.AnyFunSuite
+import analyzer.FileUtils.getMatchedFile
+import analyzer.LogParser.{openURLSource, openFileSource}
 
-class LogParserSpec extends AnyFunSuite {
+import java.time.ZonedDateTime
+import cats.effect.IO
+import munit.CatsEffectSuite
+
+class LogParserSpec extends CatsEffectSuite {
   test("LogParser.parseLogRecord should parse a valid log record correctly") {
     val logRecordStr =
       "127.0.0.1 - - [21/Jul/2024:12:34:56 +0000] \"GET /index.html HTTP/1.1\" 200 1024 \"https://www.example.com/\" \"Mozilla/5.0\""
     val result = LogParser.parseLogRecord(logRecordStr)
 
-    assert(
-      result === LogRecord(
-        "127.0.0.1",
-        "-",
-        ZonedDateTime.parse("21/Jul/2024:12:34:56 +0000", LogParser.formatter),
-        "\"GET /index.html HTTP/1.1\"",
-        "GET",
-        "/index.html",
-        200,
-        1024,
-        "https://www.example.com/",
-        "Mozilla/5.0"
+    IO(
+      assert(
+        result == LogRecord(
+          "127.0.0.1",
+          "-",
+          ZonedDateTime
+            .parse("21/Jul/2024:12:34:56 +0000", LogParser.formatter),
+          "\"GET /index.html HTTP/1.1\"",
+          "GET",
+          "/index.html",
+          200,
+          1024,
+          "https://www.example.com/",
+          "Mozilla/5.0"
+        )
       )
     )
   }
@@ -31,18 +38,21 @@ class LogParserSpec extends AnyFunSuite {
     val logRecordStr =
       "2001:0db8:85a3:0000:0000:8a2e:0370:7334 - - [21/Jul/2024:12:34:56 +0000] \"GET /index.html HTTP/1.1\" 200 1024 \"https://www.example.com/\" \"Mozilla/5.0\""
     val result = LogParser.parseLogRecord(logRecordStr)
-    assert(
-      result === LogRecord(
-        "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-        "-",
-        ZonedDateTime.parse("21/Jul/2024:12:34:56 +0000", LogParser.formatter),
-        "\"GET /index.html HTTP/1.1\"",
-        "GET",
-        "/index.html",
-        200,
-        1024,
-        "https://www.example.com/",
-        "Mozilla/5.0"
+    IO(
+      assert(
+        result == LogRecord(
+          "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+          "-",
+          ZonedDateTime
+            .parse("21/Jul/2024:12:34:56 +0000", LogParser.formatter),
+          "\"GET /index.html HTTP/1.1\"",
+          "GET",
+          "/index.html",
+          200,
+          1024,
+          "https://www.example.com/",
+          "Mozilla/5.0"
+        )
       )
     )
   }
@@ -53,18 +63,21 @@ class LogParserSpec extends AnyFunSuite {
     val logRecordStr =
       "127.0.0.1 - user123 [21/Jul/2024:12:34:56 +0000] \"GET /index.html HTTP/1.1\" 200 1024 \"https://www.example.com/\" \"Mozilla/5.0\""
     val result = LogParser.parseLogRecord(logRecordStr)
-    assert(
-      result === LogRecord(
-        "127.0.0.1",
-        "user123",
-        ZonedDateTime.parse("21/Jul/2024:12:34:56 +0000", LogParser.formatter),
-        "\"GET /index.html HTTP/1.1\"",
-        "GET",
-        "/index.html",
-        200,
-        1024,
-        "https://www.example.com/",
-        "Mozilla/5.0"
+    IO(
+      assert(
+        result == LogRecord(
+          "127.0.0.1",
+          "user123",
+          ZonedDateTime
+            .parse("21/Jul/2024:12:34:56 +0000", LogParser.formatter),
+          "\"GET /index.html HTTP/1.1\"",
+          "GET",
+          "/index.html",
+          200,
+          1024,
+          "https://www.example.com/",
+          "Mozilla/5.0"
+        )
       )
     )
   }
@@ -77,13 +90,13 @@ class LogParserSpec extends AnyFunSuite {
     val thrown = intercept[IllegalArgumentException] {
       LogParser.parseLogRecord(logRecordStr)
     }
-    assert(thrown.getMessage.contains("Invalid log record"))
+    IO(assert(thrown.getMessage.contains("Invalid log record")))
   }
 
   test("LogParser.parseTimeLocal should parse a valid time string correctly") {
     val timeStr = "21/Jul/2024:12:34:56 +0000"
     val result = LogParser.parseTimeLocal(timeStr)
-    assert(result === ZonedDateTime.parse(timeStr, LogParser.formatter))
+    IO(assert(result == ZonedDateTime.parse(timeStr, LogParser.formatter)))
   }
 
   test(
@@ -93,76 +106,120 @@ class LogParserSpec extends AnyFunSuite {
     val thrown = intercept[IllegalArgumentException] {
       LogParser.parseTimeLocal(timeStr)
     }
-    assert(thrown.getMessage.contains("Invalid date-time format"))
+    IO(assert(thrown.getMessage.contains("Invalid date-time format")))
   }
 
   test("LogParser.getLogRecords get correctly from URI") {
-    val result = LogParser.getLogRecords(
-      "https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs",
-      None,
-      None,
-      None,
-      None
-    )
-    assert(result.size == 51462)
+    openURLSource(
+      "https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs"
+    ).bracket { source =>
+      for {
+        result <- LogParser.getLogRecords(source, None, None, None, None)
+        _ <- IO(assert(result.size == 51462))
+      } yield ()
+    } { source =>
+      IO(source.close())
+    }
   }
 
   test("LogParser.getLogRecords get correctly from local file") {
-    val result = LogParser.getLogRecords(
-      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
-      None,
-      None,
-      None,
-      None
-    )
-    assert(result.size == 4)
+    openFileSource(
+      getMatchedFile(
+        "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt"
+      ).head
+    ).bracket { source =>
+      for {
+        result <- LogParser.getLogRecords(source, None, None, None, None)
+        _ <- IO(assert(result.size == 4))
+      } yield ()
+    } { source =>
+      IO(source.close())
+    }
   }
 
   test("LogParser.getLogRecords works correctly with from option") {
-    val result = LogParser.getLogRecords(
-      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
-      Some(InputUtils.parseDate("2024-09-01")),
-      None,
-      None,
-      None
-    )
-    assert(result.size == 3)
+    openFileSource(
+      getMatchedFile(
+        "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt"
+      ).head
+    ).bracket { source =>
+      for {
+        result <- LogParser.getLogRecords(
+          source,
+          Some(InputUtils.parseDate("2024-09-01")),
+          None,
+          None,
+          None
+        )
+        _ <- IO(assert(result.size == 3))
+      } yield ()
+    } { source =>
+      IO(source.close())
+    }
   }
 
   test("LogParser.getLogRecords works correctly with to option") {
-    val result = LogParser.getLogRecords(
-      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
-      None,
-      Some(InputUtils.parseDate("2024-11-03")),
-      None,
-      None
-    )
-    assert(result.size == 3)
+    openFileSource(
+      getMatchedFile(
+        "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt"
+      ).head
+    ).bracket { source =>
+      for {
+        result <- LogParser.getLogRecords(
+          source,
+          None,
+          Some(InputUtils.parseDate("2024-11-03")),
+          None,
+          None
+        )
+        _ <- IO(assert(result.size == 3))
+      } yield ()
+    } { source =>
+      IO(source.close())
+    }
   }
 
   test("LogParser.getLogRecords works correctly with from and to options") {
-    val result = LogParser.getLogRecords(
-      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
-      Some(InputUtils.parseDate("2024-09-01")),
-      Some(InputUtils.parseDate("2024-11-03")),
-      None,
-      None
-    )
-    assert(result.size == 2)
+    openFileSource(
+      getMatchedFile(
+        "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt"
+      ).head
+    ).bracket { source =>
+      for {
+        result <- LogParser.getLogRecords(
+          source,
+          Some(InputUtils.parseDate("2024-09-01")),
+          Some(InputUtils.parseDate("2024-11-03")),
+          None,
+          None
+        )
+        _ <- IO(assert(result.size == 2))
+      } yield ()
+    } { source =>
+      IO(source.close())
+    }
   }
 
   test("getLogRecordsFromLocal should filter records by filter field") {
     val filterField = Some(Resource)
     val filterValue = Some("/index.html")
-
-    val records = LogParser.getLogRecords(
-      "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt",
-      None,
-      None,
-      filterField,
-      filterValue
-    )
-
-    assert(records.size == 2)
+    openFileSource(
+      getMatchedFile(
+        "./analyzer/src/test/scala/analyzer/test_logs/test_logs.txt"
+      ).head
+    ).bracket { source =>
+      for {
+        result <- LogParser.getLogRecords(
+          source,
+          None,
+          None,
+          filterField,
+          filterValue
+        )
+        _ <- IO(assert(result.size == 2))
+      } yield ()
+    } { source =>
+      IO(source.close())
+    }
   }
 }

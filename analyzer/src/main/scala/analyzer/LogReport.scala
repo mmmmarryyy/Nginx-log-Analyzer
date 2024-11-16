@@ -10,18 +10,14 @@ case class LogReport(
     filePath: String,
     startDate: Option[ZonedDateTime],
     endDate: Option[ZonedDateTime],
-    totalRequests: Option[Long],
-    topRemoteAddresses: Option[Map[String, Long]],
-    topResources: Option[Map[String, Long]],
-    topStatusCodes: Option[Map[Int, Long]],
-    topMethods: Option[Map[String, Long]],
-    avgResponseBodySize: Option[Double],
-    p95ResponseBodySize: Option[Double]
+    logStatistics: Option[LogStatistics],
+    responseSizes: List[Long]
 )
 
 object LogReport {
   private val generalInformationStr = "General information"
   private val metricsStr = "Metrics"
+  private val fieldStr = "Field"
   private val valueStr = "Value"
   private val pathStr = "Path"
   private val startDateStr = "Start date"
@@ -41,158 +37,9 @@ object LogReport {
   private val addressStr = "Remote Address"
 
   def createReport(logReport: LogReport, format: ReportFormat): Unit = {
-    if (format == Adoc) {
-      createAdocReport(logReport)
-    } else {
-      createMarkdownReport(logReport)
-    }
-  }
-
-  private def createMarkdownReport(logReport: LogReport): Unit = {
-    val fileWriter = new FileWriter(new File(generateReportFileName(Markdown)))
-    fileWriter.write(
-      s"#### $generalInformationStr\n"
-    )
-    fileWriter.write(s"| $metricsStr | $valueStr |\n")
-    fileWriter.write("|:--------:|---------:|\n")
-    fileWriter.write(
-      s"|$pathStr|${logReport.filePath}|\n"
-    )
-    fileWriter.write(
-      s"|$startDateStr|${logReport.startDate.getOrElse("-")} |\n"
-    )
-    fileWriter.write(
-      s"|$endDateStr|${logReport.endDate.getOrElse("-")}|\n"
-    )
-    fileWriter.write(
-      s"|$numberOfRequestsStr|${logReport.totalRequests.getOrElse("-")}|\n"
-    )
-    fileWriter.write(
-      s"|$averageResponseSizeStr|${logReport.avgResponseBodySize.getOrElse("-")}b|\n"
-    )
-    fileWriter.write(
-      s"|$p95responseSizeStr|${logReport.p95ResponseBodySize.getOrElse("-")}b|\n"
-    )
-
-    fileWriter.write(s"\n#### $requestedResourcesStr\n")
-    fileWriter.write(s"| $resourcesStr | $quantityStr |\n")
-    fileWriter.write("|:-------:|-----------:|\n")
-    logReport.topResources match {
-      case Some(topResources) =>
-        topResources.foreach { case (resource, count) =>
-          fileWriter.write(
-            s"| $resource | $count |\n"
-          )
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-
-    fileWriter.write(s"\n#### $responseCodesStr\n")
-    fileWriter.write(s"| $quantityStr | $statusNameStr | $quantityStr |\n")
-    fileWriter.write("|:---:|:---:|-----------:|\n")
-    logReport.topStatusCodes match {
-      case Some(topStatusCodes) =>
-        topStatusCodes.foreach { case (code, count) =>
-          fileWriter.write(s"| $code | ${getStatusName(code)} | $count |\n")
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-
-    fileWriter.write(s"\n#### $methodsStr\n")
-    fileWriter.write(s"| $methodStr | $quantityStr |\n")
-    fileWriter.write("|:-------:|-----------:|\n")
-    logReport.topMethods match {
-      case Some(topMethods) =>
-        topMethods.foreach { case (method, count) =>
-          fileWriter.write(
-            s"| $method | $count |\n"
-          )
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-
-    fileWriter.write(s"\n#### $addressesStr\n")
-    fileWriter.write(s"| $addressStr | $quantityStr |\n")
-    fileWriter.write("|:-------:|-----------:|\n")
-    logReport.topRemoteAddresses match {
-      case Some(topRemoteAddresses) =>
-        topRemoteAddresses.foreach { case (address, count) =>
-          fileWriter.write(
-            s"| $address | $count |\n"
-          )
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-    fileWriter.close()
-  }
-
-  private def createAdocReport(logReport: LogReport): Unit = {
-    val fileWriter = new FileWriter(new File(generateReportFileName(Adoc)))
-    fileWriter.write(s"== $generalInformationStr ==\n[cols=\"1,1\"]\n|===\n")
-    fileWriter.write(s"|$metricsStr|$valueStr\n\n")
-    fileWriter.write(
-      s"|$pathStr\n|${logReport.filePath}\n\n"
-    )
-    fileWriter.write(
-      s"|$startDateStr\n|${logReport.startDate.getOrElse("-")}\n\n"
-    )
-    fileWriter.write(
-      s"|$endDateStr\n|${logReport.endDate.getOrElse("-")}\n\n"
-    )
-    fileWriter.write(
-      s"|$numberOfRequestsStr\n|${logReport.totalRequests.getOrElse("-")}\n\n"
-    )
-    fileWriter.write(
-      s"|$averageResponseSizeStr\n|${logReport.avgResponseBodySize.getOrElse("-")}b\n\n"
-    )
-    fileWriter.write(
-      s"|$p95responseSizeStr\n|${logReport.p95ResponseBodySize.getOrElse("-")}b\n\n"
-    )
-
-    fileWriter.write(
-      s"|===\n\n== $requestedResourcesStr ==\n[cols=\"1,1\"]\n|===\n"
-    )
-    fileWriter.write(s"|$resourcesStr|$quantityStr\n\n")
-    logReport.topResources match {
-      case Some(topResources) =>
-        topResources.foreach { case (resource, count) =>
-          fileWriter.write(s"|$resource|\n$count\n\n")
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-
-    fileWriter.write(
-      s"|===\n\n== $responseCodesStr ==\n[cols=\"1,1,1\"]\n|===\n"
-    )
-    fileWriter.write(s"|$quantityStr|$statusNameStr|$quantityStr\n\n")
-    logReport.topStatusCodes match {
-      case Some(topStatusCodes) =>
-        topStatusCodes.foreach { case (code, count) =>
-          fileWriter.write(s"|$code|\n${getStatusName(code)}|\n$count\n\n")
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-
-    fileWriter.write(s"|===\n\n== $methodsStr ==\n[cols=\"1,1\"]\n|===\n")
-    fileWriter.write(s"|$methodStr|$quantityStr\n\n")
-    logReport.topMethods match {
-      case Some(topMethods) =>
-        topMethods.foreach { case (method, count) =>
-          fileWriter.write(s"|$method|\n$count\n\n")
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-
-    fileWriter.write(s"|===\n\n== $addressesStr ==\n[cols=\"1,1\"]\n|===\n")
-    fileWriter.write(s"|$addressStr|$quantityStr\n\n")
-    logReport.topRemoteAddresses match {
-      case Some(topRemoteAddresses) =>
-        topRemoteAddresses.foreach { case (address, count) =>
-          fileWriter.write(s"|$address|\n$count\n\n")
-        }
-      case None => fileWriter.write(s"| - | - | - |\n")
-    }
-    fileWriter.write("|===\n")
+    val fileWriter = new FileWriter(new File(generateReportFileName(format)))
+    val reportContent = generateReportContent(logReport, format)
+    fileWriter.write(reportContent)
     fileWriter.close()
   }
 
@@ -205,5 +52,114 @@ object LogReport {
     val NotModified = Value(304)
     val NotFound = Value(404)
     val InternalServerError = Value(500)
+  }
+
+  private def generateReportContent(
+      logReport: LogReport,
+      format: ReportFormat
+  ): String = {
+    def addSection(
+        title: String,
+        head: (String, String),
+        data: Seq[(String, String)]
+    ): String = {
+      val sectionTitle = format match {
+        case Markdown => s"#### $title\n"
+        case Adoc     => s"== $title ==\n"
+      }
+      val sectionData = if (data.isEmpty) {
+        format match {
+          case Markdown => "| - | - |\n"
+          case Adoc     => "| - | - |\n"
+        }
+      } else {
+        val header = format match {
+          case Markdown => s"${head._1} | ${head._2}\n|:---|---:\n"
+          case Adoc     => s"${head._1} | ${head._2}\n|===\n"
+        }
+        header + data.map(formatRow).mkString + (format match {
+          case Markdown => ""
+          case Adoc     => "|===\n"
+        })
+      }
+      sectionTitle + sectionData + "\n"
+    }
+
+    def formatRow(row: (String, String)): String = {
+      format match {
+        case Markdown => s"| ${row._1} | ${row._2} |\n"
+        case Adoc     => s"| ${row._1} |\n${row._2}\n\n"
+      }
+    }
+
+    List(
+      addSection(
+        generalInformationStr,
+        (fieldStr, valueStr),
+        Seq(
+          (pathStr, logReport.filePath),
+          (startDateStr, logReport.startDate.getOrElse("-").toString),
+          (endDateStr, logReport.endDate.getOrElse("-").toString)
+        )
+      ),
+      logReport.logStatistics match {
+        case Some(stats) =>
+          List(
+            addSection(
+              metricsStr,
+              (metricsStr, valueStr),
+              Seq(
+                (numberOfRequestsStr, stats.totalRequests.toString),
+                (averageResponseSizeStr, s"${stats.avgResponseBodySize}b"),
+                (p95responseSizeStr, s"${stats.p95ResponseBodySize}b")
+              )
+            ),
+            addSection(
+              requestedResourcesStr,
+              (resourcesStr, quantityStr),
+              stats.topResources.map { case (k, v) => (k, v.toString) }.toSeq
+            ),
+            addSection(
+              responseCodesStr,
+              (codeStr, statusNameStr),
+              stats.topStatusCodes.map { case (k, v) =>
+                (k.toString, getStatusName(k))
+              }.toSeq
+            ),
+            addSection(
+              methodsStr,
+              (methodStr, quantityStr),
+              stats.topMethods.map { case (k, v) => (k, v.toString) }.toSeq
+            ),
+            addSection(
+              addressesStr,
+              (addressStr, quantityStr),
+              stats.topRemoteAddresses.map { case (k, v) =>
+                (k, v.toString)
+              }.toSeq
+            )
+          ).mkString
+        case None =>
+          List(
+            addSection(
+              metricsStr,
+              (metricsStr, valueStr),
+              Seq(
+                (numberOfRequestsStr, "-"),
+                (averageResponseSizeStr, "-"),
+                (p95responseSizeStr, "-")
+              )
+            ),
+            addSection(
+              requestedResourcesStr,
+              (resourcesStr, quantityStr),
+              Seq.empty
+            ),
+            addSection(responseCodesStr, (codeStr, statusNameStr), Seq.empty),
+            addSection(methodsStr, (methodStr, quantityStr), Seq.empty),
+            addSection(addressesStr, (addressStr, quantityStr), Seq.empty)
+          ).mkString
+      }
+    ).mkString
   }
 }

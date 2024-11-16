@@ -10,9 +10,7 @@ class LogAnalyzerSpec extends AnyFunSuite {
     val logRecords = Iterator.empty[LogRecord]
     val result = LogAnalyzer.analyzeLogRecords(
       logRecords,
-      "src/*.txt",
-      None,
-      None
+      LogReport("src/*.txt", None, None, None, List[Long]())
     )
     assert(
       result === LogReport(
@@ -20,12 +18,7 @@ class LogAnalyzerSpec extends AnyFunSuite {
         None,
         None,
         None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
+        List[Long]()
       )
     )
   }
@@ -49,9 +42,7 @@ class LogAnalyzerSpec extends AnyFunSuite {
     )
     val result = LogAnalyzer.analyzeLogRecords(
       logRecords,
-      "somePath",
-      None,
-      None
+      LogReport("somePath", None, None, None, List[Long]())
     )
 
     assert(
@@ -59,13 +50,18 @@ class LogAnalyzerSpec extends AnyFunSuite {
         "somePath",
         None,
         None,
-        Some(1L),
-        Some(Map("127.0.0.1" -> 1L)),
-        Some(Map("/index.html" -> 1L)),
-        Some(Map(200 -> 1L)),
-        Some(Map("GET" -> 1L)),
-        Some(1024.0),
-        Some(1024.0)
+        Some(
+          LogStatistics(
+            1L,
+            Map("127.0.0.1" -> 1L),
+            Map("/index.html" -> 1L),
+            Map(200 -> 1L),
+            Map("GET" -> 1L),
+            1024.0,
+            1024.0
+          )
+        ),
+        List[Long](1024)
       )
     )
   }
@@ -113,22 +109,25 @@ class LogAnalyzerSpec extends AnyFunSuite {
     )
     val result = LogAnalyzer.analyzeLogRecords(
       logRecords,
-      "somePAth",
-      None,
-      None
+      LogReport("somePath", None, None, None, List[Long]())
     )
     assert(
       result === LogReport(
-        "somePAth",
+        "somePath",
         None,
         None,
-        Some(3L),
-        Some(Map("127.0.0.1" -> 2L, "192.168.1.1" -> 1L)),
-        Some(Map("/index.html" -> 1L, "/api/users" -> 1L, "/about.html" -> 1L)),
-        Some(Map(200 -> 2L, 201 -> 1L)),
-        Some(Map("GET" -> 2L, "POST" -> 1L)),
-        Some(1194.6666666666667),
-        Some(2048.0)
+        Some(
+          LogStatistics(
+            3L,
+            Map("127.0.0.1" -> 2L, "192.168.1.1" -> 1L),
+            Map("/index.html" -> 1L, "/api/users" -> 1L, "/about.html" -> 1L),
+            Map(200 -> 2L, 201 -> 1L),
+            Map("GET" -> 2L, "POST" -> 1L),
+            1194.6666666666667,
+            2048.0
+          )
+        ),
+        List[Long](1024, 2048, 512)
       )
     )
   }

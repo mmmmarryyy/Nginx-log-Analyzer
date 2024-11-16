@@ -1,5 +1,3 @@
-// InputUtils.scala
-
 package analyzer
 
 import java.time.{LocalDate, ZonedDateTime}

@@ -2,10 +2,9 @@ package analyzer
 
 import FileUtils.generateReportFileName
 
+import java.io.File
 import java.time.ZonedDateTime
 import org.scalatest.funsuite.AnyFunSuite
-
-import java.io.File
 
 class LogReportSpec extends AnyFunSuite {
 
@@ -16,13 +15,18 @@ class LogReportSpec extends AnyFunSuite {
       "src/test/resources/test_logs/*.txt",
       Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
       Some(ZonedDateTime.parse("2024-09-01T00:00:00Z")),
-      Some(2L),
-      Some(Map("192.168.1.1" -> 1L, "127.0.0.1" -> 1L)),
-      Some(Map("/api/users" -> 1L, "/about.html" -> 1L)),
-      Some(Map(201 -> 1L, 200 -> 1L)),
-      Some(Map("POST" -> 1L, "GET" -> 1L)),
-      Some(1280.0),
-      Some(2048.0)
+      Some(
+        LogStatistics(
+          2L,
+          Map("192.168.1.1" -> 1L, "127.0.0.1" -> 1L),
+          Map("/api/users" -> 1L, "/about.html" -> 1L),
+          Map(201 -> 1L, 200 -> 1L),
+          Map("POST" -> 1L, "GET" -> 1L),
+          1280.0,
+          2048.0
+        )
+      ),
+      List[Long](2048, 512)
     )
 
     val reportFile = new File(generateReportFileName(Markdown))
@@ -37,13 +41,18 @@ class LogReportSpec extends AnyFunSuite {
       "src/test/resources/test_logs/*.txt",
       Some(ZonedDateTime.parse("2024-08-31T00:00:00Z")),
       Some(ZonedDateTime.parse("2024-09-01T00:00:00Z")),
-      Some(2L),
-      Some(Map("192.168.1.1" -> 1L, "127.0.0.1" -> 1L)),
-      Some(Map("/api/users" -> 1L, "/about.html" -> 1L)),
-      Some(Map(201 -> 1L, 200 -> 1L)),
-      Some(Map("POST" -> 1L, "GET" -> 1L)),
-      Some(1280.0),
-      Some(2048.0)
+      Some(
+        LogStatistics(
+          2L,
+          Map("192.168.1.1" -> 1L, "127.0.0.1" -> 1L),
+          Map("/api/users" -> 1L, "/about.html" -> 1L),
+          Map(201 -> 1L, 200 -> 1L),
+          Map("POST" -> 1L, "GET" -> 1L),
+          1280.0,
+          2048.0
+        )
+      ),
+      List[Long](2048, 512)
     )
 
     val reportFile = new File(generateReportFileName(Adoc))

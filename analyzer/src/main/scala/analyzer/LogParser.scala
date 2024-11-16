@@ -1,7 +1,8 @@
 package analyzer
 
-import analyzer.FileUtils.getMatchedFile
+import cats.effect.IO
 
+import java.io.File
 import java.net.URL
 import java.time.ZonedDateTime
 import java.time.format.{DateTimeFormatterBuilder, DateTimeParseException}
@@ -50,57 +51,27 @@ object LogParser {
     .toFormatter()
     .withLocale(Locale.US)
 
+  def openFileSource(file: File): IO[Source] = IO(Source.fromFile(file))
+
+  def openURLSource(link: String): IO[Source] = IO(
+    Source.fromURL(new URL(link))
+  )
+
   def getLogRecords(
-      path: String,
+      source: Source,
       from: Option[ZonedDateTime],
       to: Option[ZonedDateTime],
       filterField: Option[FilterField],
       filterValue: Option[String]
-  ): Iterator[LogRecord] = {
-    if (path.startsWith("http")) {
-      getLogRecordsFromUrl(path, from, to, filterField, filterValue)
-    } else {
-      getLogRecordsFromLocal(path, from, to, filterField, filterValue)
-    }
-  }
-
-  private def getLogRecordsFromLocal(
-      path: String,
-      from: Option[ZonedDateTime],
-      to: Option[ZonedDateTime],
-      filterField: Option[FilterField],
-      filterValue: Option[String]
-  ) = {
-    getMatchedFile(path).flatMap { file =>
-      Source
-        .fromFile(file)
-        .getLines()
-        .map(parseLogRecord)
-        .filter(line => {
-          from.forall(_.isBefore(line.timeLocal)) && to.forall(
-            _.isAfter(line.timeLocal)
-          ) && applyFilter(line, filterField, filterValue)
-        })
-    }.iterator
-  }
-
-  private def getLogRecordsFromUrl(
-      path: String,
-      from: Option[ZonedDateTime],
-      to: Option[ZonedDateTime],
-      filterField: Option[FilterField],
-      filterValue: Option[String]
-  ): Iterator[LogRecord] = {
-    Source
-      .fromURL(new URL(path))
+  ): IO[Iterator[LogRecord]] = IO {
+    source
       .getLines()
-      .map(parseLogRecord)
+      .map(LogParser.parseLogRecord)
       .filter(line => {
         from.forall(_.isBefore(line.timeLocal)) && to.forall(
           _.isAfter(line.timeLocal)
         ) && applyFilter(line, filterField, filterValue)
       })
-      .iterator
   }
 
   def parseLogRecord(line: String): LogRecord = {
